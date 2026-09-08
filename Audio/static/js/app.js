@@ -154,6 +154,13 @@ function typeWriter(el, text, speed) {
 }
 
 // ------------------------------------------------------------- dropzones --
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+function uploadSizeMessage(file) {
+  const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+  return `${file.name} is ${sizeMb} MB. Please use an audio file smaller than 4 MB.`;
+}
+
 function attachDropzone(dropzone, input, filenameEl, onFile) {
   if (!dropzone || !input) return;
   const open = () => input.click();
@@ -176,6 +183,7 @@ function attachDropzone(dropzone, input, filenameEl, onFile) {
   dropzone.addEventListener("drop", (e) => {
     const file = e.dataTransfer.files[0];
     if (file) {
+      if (file.size > MAX_UPLOAD_BYTES) { toast(uploadSizeMessage(file)); return; }
       input.files = e.dataTransfer.files;
       if (filenameEl) filenameEl.textContent = file.name;
       if (onFile) onFile(file);
@@ -184,6 +192,12 @@ function attachDropzone(dropzone, input, filenameEl, onFile) {
   input.addEventListener("change", () => {
     const file = input.files[0];
     if (file) {
+      if (file.size > MAX_UPLOAD_BYTES) {
+        input.value = "";
+        if (filenameEl) filenameEl.textContent = "";
+        toast(uploadSizeMessage(file));
+        return;
+      }
       if (filenameEl) filenameEl.textContent = file.name;
       if (onFile) onFile(file);
     }
@@ -401,6 +415,7 @@ function initEncodePage() {
     const message = messageInput.value.trim();
     if (!message) { toast("Type a message to hide first."); return; }
     if (!input.files[0] && !selectedDemoTrack) { toast("Pick an audio file or a demo track."); return; }
+    if (input.files[0] && input.files[0].size > MAX_UPLOAD_BYTES) { toast(uploadSizeMessage(input.files[0])); return; }
 
     const fd = new FormData();
     if (input.files[0]) fd.append("audio", input.files[0]);
@@ -509,6 +524,7 @@ function initDecodePage() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!input.files[0]) { toast("Drop a file to scan first."); return; }
+    if (input.files[0].size > MAX_UPLOAD_BYTES) { toast(uploadSizeMessage(input.files[0])); return; }
 
     const fd = new FormData();
     fd.append("audio", input.files[0]);
