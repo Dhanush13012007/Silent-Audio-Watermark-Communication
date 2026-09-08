@@ -519,8 +519,10 @@ function initDecodePage() {
     submitBtn.textContent = "Scanning…";
     resultTag.textContent = "SCANNING";
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 90000);
     try {
-      const req = fetch("/api/decode", { method: "POST", body: fd }).then(async (response) => {
+      const req = fetch("/api/decode", { method: "POST", body: fd, signal: controller.signal }).then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok && !data.error) {
           data.error = `The decoder server returned HTTP ${response.status}.`;
@@ -539,8 +541,12 @@ function initDecodePage() {
       await renderDecodeResult(resultBody, data);
     } catch (error) {
       resultTag.textContent = "ERROR";
-      resultBody.innerHTML = `<div class="banner bad">${escapeHtml(error.message || "The decode request failed. Check that the server is running and try again.")}</div>`;
+      const message = error.name === "AbortError"
+        ? "Decoding timed out after 90 seconds. Try a shorter audio file."
+        : (error.message || "The decode request failed. Check that the server is running and try again.");
+      resultBody.innerHTML = `<div class="banner bad">${escapeHtml(message)}</div>`;
     } finally {
+      clearTimeout(timeout);
       submitBtn.disabled = false;
       submitBtn.textContent = "Scan for watermark";
     }
