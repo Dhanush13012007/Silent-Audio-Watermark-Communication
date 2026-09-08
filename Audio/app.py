@@ -46,8 +46,11 @@ from encoder.watermark_encoder import (
 from decoder.watermark_decoder import decode_message
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
+# Vercel's deployed project directory is read-only. /tmp is writable for the
+# lifetime of a serverless instance and keeps the existing download API intact.
+RUNTIME_DIR = os.path.join("/tmp", "silent-audio-watermark") if os.getenv("VERCEL") else BASE_DIR
+UPLOAD_DIR = os.path.join(RUNTIME_DIR, "uploads")
+OUTPUT_DIR = os.path.join(RUNTIME_DIR, "output")
 HISTORY_PATH = os.path.join(OUTPUT_DIR, "history.json")
 DEMO_AUDIO_DIR = os.path.join(BASE_DIR, "static", "audio")
 MAX_HISTORY = 200
@@ -76,13 +79,17 @@ def _load_history() -> list[dict]:
 
 
 def _append_history(entry: dict) -> None:
-    history = _load_history()
-    entry["id"] = uuid.uuid4().hex[:10]
-    entry["timestamp"] = time.time()
-    history.insert(0, entry)
-    history = history[:MAX_HISTORY]
-    with open(HISTORY_PATH, "w") as f:
-        json.dump(history, f)
+    try:
+        history = _load_history()
+        entry["id"] = uuid.uuid4().hex[:10]
+        entry["timestamp"] = time.time()
+        history.insert(0, entry)
+        history = history[:MAX_HISTORY]
+        with open(HISTORY_PATH, "w") as f:
+            json.dump(history, f)
+    except OSError:
+        # Serverless storage is temporary; analytics must not break encoding.
+        pass
 
 
 def _history_summary(history: list[dict]) -> dict:
