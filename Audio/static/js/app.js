@@ -154,11 +154,11 @@ function typeWriter(el, text, speed) {
 }
 
 // ------------------------------------------------------------- dropzones --
-const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
 
 function uploadSizeMessage(file) {
   const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-  return `${file.name} is ${sizeMb} MB. Please use an audio file smaller than 4 MB.`;
+  return `${file.name} is ${sizeMb} MB. Please use an audio file smaller than 3 MB.`;
 }
 
 function attachDropzone(dropzone, input, filenameEl, onFile) {
@@ -541,7 +541,9 @@ function initDecodePage() {
       const req = fetch("/api/decode", { method: "POST", body: fd, signal: controller.signal }).then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok && !data.error) {
-          data.error = `The decoder server returned HTTP ${response.status}.`;
+          data.error = response.status === 413
+            ? "This audio file is too large for the hosted decoder. Please choose an audio file smaller than 3 MB."
+            : `The decoder server returned HTTP ${response.status}.`;
         }
         return data;
       });
