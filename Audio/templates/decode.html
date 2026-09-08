@@ -29,7 +29,7 @@
         <div class="field">
           <label for="privateKeyInput">Receiver private key <span style="color:var(--ink-faint);font-weight:400;">(required)</span></label>
           <textarea id="privateKeyInput" rows="8" placeholder="Paste the receiver's RSA private PEM key"></textarea>
-          <div class="hint">Only the receiver should have this key. It is used for this request and is never embedded in the audio.</div>
+          <div class="hint">Paste the full PEM key or only its base64 value. Only the receiver should have this key.</div>
         </div>
 
         <div class="progress-chain" id="decodeProgress" style="display:none;">

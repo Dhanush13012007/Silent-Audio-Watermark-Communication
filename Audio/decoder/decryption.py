@@ -3,12 +3,23 @@
 from __future__ import annotations
 
 import struct
+import re
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from encoder.encryption import MAGIC, RSA_KEY_BYTES
+
+
+def _private_key_pem(value: str) -> bytes:
+    value = value.strip()
+    if "-----BEGIN" not in value:
+        value = re.sub(r"\s+", "", value)
+        value = "-----BEGIN PRIVATE KEY-----\n" + "\n".join(
+            value[index : index + 64] for index in range(0, len(value), 64)
+        ) + "\n-----END PRIVATE KEY-----"
+    return value.encode("utf-8")
 
 
 def decrypt(data: bytes, private_key_pem: str) -> bytes:
@@ -25,7 +36,7 @@ def decrypt(data: bytes, private_key_pem: str) -> bytes:
     ciphertext = data[18 + wrapped_len :]
     try:
         private_key = serialization.load_pem_private_key(
-            private_key_pem.encode("utf-8"), password=None
+            _private_key_pem(private_key_pem), password=None
         )
         aes_key = private_key.decrypt(
             wrapped_key,
