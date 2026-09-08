@@ -460,7 +460,7 @@ function renderEncodeResult(container, data) {
     </div>
 
     <div class="audio-block">
-      <h4 style="margin:0 0 8px;color:var(--ink-dim);font-size:11.5px;">Listen — try to tell them apart</h4>
+      <h4 style="margin:0 0 8px;color:var(--ink-dim);font-size:11.5px;">Listen — one version at a time</h4>
       <div class="audio-compare">
         <div class="audio-card">
           <div class="lbl">ORIGINAL</div>
@@ -477,6 +477,15 @@ function renderEncodeResult(container, data) {
   `;
   drawWaveformCompare(document.getElementById("wfCompareCanvas"), data.waveform_before, data.waveform_after);
   drawSpectrum(document.getElementById("spectrumCanvas"), data.spectrum.freqs, data.spectrum.db, data.watermark_band, data.sync_freq);
+
+  const comparePlayers = container.querySelectorAll("audio");
+  comparePlayers.forEach((player) => {
+    player.addEventListener("play", () => {
+      comparePlayers.forEach((other) => {
+        if (other !== player) other.pause();
+      });
+    });
+  });
 }
 
 // ============================================================================

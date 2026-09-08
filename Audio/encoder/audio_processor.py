@@ -11,16 +11,14 @@ any DSP - that gives us a Nyquist frequency of 22.05 kHz, comfortably above
 the watermark band with headroom for the FFT bins either side of it.
 
 Any input format ffmpeg understands (wav, mp3, m4a, flac, ogg ...) is
-accepted; we shell out to the system ffmpeg binary to normalise everything
-to a temp WAV first, which keeps this module free of extra Python deps.
+accepted; we shell out to the system ffmpeg binary and read normalized PCM
+directly from stdout, avoiding a large temporary WAV on disk.
 """
 
 from __future__ import annotations
 
 import os
 import subprocess
-import tempfile
-import uuid
 
 import numpy as np
 from scipy.io import wavfile
@@ -43,43 +41,36 @@ def load_audio(path: str, target_sr: int = TARGET_SR) -> tuple[np.ndarray, int]:
 
     Returns (samples, sample_rate).
     """
-    tmp_wav = os.path.join(tempfile.gettempdir(), f"saw_{uuid.uuid4().hex}.wav")
     try:
-        try:
-            ffmpeg = get_ffmpeg_exe() if get_ffmpeg_exe else "ffmpeg"
-            result = subprocess.run(
-                [
-                    ffmpeg, "-y", "-v", "error",
-                    "-i", path,
-                    "-ac", "1",                 # mono
-                    "-ar", str(target_sr),      # resample
-                    "-acodec", "pcm_s16le",
-                    tmp_wav,
-                ],
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
-        except (FileNotFoundError, RuntimeError):
-            if not path.lower().endswith(".wav"):
-                raise AudioLoadError(
-                    "No audio converter is available. Install the project "
-                    "requirements and restart the app to use MP3, M4A, FLAC, "
-                    "or OGG files."
-                )
-            return _load_wav_without_ffmpeg(path, target_sr)
-
-        if result.returncode != 0 or not os.path.exists(tmp_wav):
+        ffmpeg = get_ffmpeg_exe() if get_ffmpeg_exe else "ffmpeg"
+        result = subprocess.run(
+            [
+                ffmpeg, "-v", "error",
+                "-i", path,
+                "-map", "0:a:0",             # use the first audio stream
+                "-vn",                        # skip video streams in MP4s
+                "-ac", "1",                  # mono
+                "-ar", str(target_sr),       # resample
+                "-f", "s16le", "-",          # decode directly in memory
+            ],
+            capture_output=True,
+            timeout=120,
+        )
+    except (FileNotFoundError, RuntimeError):
+        if not path.lower().endswith(".wav"):
             raise AudioLoadError(
-                f"Could not decode audio file ({result.stderr.strip()[:200]})"
+                "No audio converter is available. Install the project "
+                "requirements and restart the app to use MP3, M4A, FLAC, "
+                "or OGG files."
             )
+        return _load_wav_without_ffmpeg(path, target_sr)
 
-        sr, data = wavfile.read(tmp_wav)
-        samples = data.astype(np.float32) / 32768.0
-        return samples, sr
-    finally:
-        if os.path.exists(tmp_wav):
-            os.remove(tmp_wav)
+    if result.returncode != 0 or not result.stdout:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()[:200]
+        raise AudioLoadError(f"Could not decode audio file ({detail})")
+
+    samples = np.frombuffer(result.stdout, dtype=np.int16).astype(np.float32)
+    return samples / 32768.0, target_sr
 
 
 def _load_wav_without_ffmpeg(path: str, target_sr: int) -> tuple[np.ndarray, int]:
