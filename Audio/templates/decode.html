@@ -27,13 +27,9 @@
         </div>
 
         <div class="field">
-          <label for="decodePasswordInput">Passphrase <span style="color:var(--ink-faint);font-weight:400;">(only if the sender used one)</span></label>
-          <div class="pw-row">
-            <input type="password" id="decodePasswordInput" placeholder="Leave blank if none">
-            <button type="button" class="icon-toggle" id="decodePwToggle" title="Show/hide">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12S5.5 5 12 5s10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
-            </button>
-          </div>
+          <label for="privateKeyInput">Receiver private key <span style="color:var(--ink-faint);font-weight:400;">(required)</span></label>
+          <textarea id="privateKeyInput" rows="8" placeholder="Paste the receiver's RSA private PEM key"></textarea>
+          <div class="hint">Only the receiver should have this key. It is used for this request and is never embedded in the audio.</div>
         </div>
 
         <div class="progress-chain" id="decodeProgress" style="display:none;">

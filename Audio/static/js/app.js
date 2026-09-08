@@ -332,7 +332,7 @@ function initLandingInteractions() {
 
   const phases = {
     message: ["01", "A thought becomes a payload.", "Plain text enters the encoder, ready to travel somewhere the ear does not naturally look."],
-    encrypt: ["02", "A private shape for the signal.", "An optional passphrase gives the bytes a second layer that only the decoder can undo."],
+    encrypt: ["02", "A private shape for the signal.", "The receiver's public key gives the bytes a layer that only the matching private key can undo."],
     modulate: ["03", "Characters become frequency.", "The payload becomes a sequence of tones, each one precise enough to be found again."],
     embed: ["04", "The carrier keeps playing.", "The ultrasonic layer slips into the host track while everything familiar stays familiar."],
     recover: ["05", "The hidden becomes legible.", "A sweep finds the sync beacon, reads the bits, checks the message, and brings it back."],
@@ -361,8 +361,7 @@ function initEncodePage() {
   const demoRow = document.getElementById("demoChipRow");
   const messageInput = document.getElementById("messageInput");
   const charCount = document.getElementById("charCount");
-  const passwordInput = document.getElementById("passwordInput");
-  const pwToggle = document.getElementById("pwToggle");
+  const publicKeyInput = document.getElementById("publicKeyInput");
   const amplitudeInput = document.getElementById("amplitudeInput");
   const ampValue = document.getElementById("ampValue");
   const submitBtn = document.getElementById("encodeSubmit");
@@ -392,10 +391,6 @@ function initEncodePage() {
     charCount.textContent = bytes;
   });
 
-  pwToggle.addEventListener("click", () => {
-    passwordInput.type = passwordInput.type === "password" ? "text" : "password";
-  });
-
   amplitudeInput.addEventListener("input", () => {
     ampValue.textContent = parseFloat(amplitudeInput.value).toFixed(3);
   });
@@ -411,7 +406,8 @@ function initEncodePage() {
     if (input.files[0]) fd.append("audio", input.files[0]);
     else fd.append("demo_track", selectedDemoTrack);
     fd.append("message", message);
-    fd.append("password", passwordInput.value);
+    if (!publicKeyInput.value.trim()) { toast("Paste the receiver public key first."); return; }
+    fd.append("public_key", publicKeyInput.value);
     fd.append("amplitude", amplitudeInput.value);
 
     submitBtn.disabled = true;
@@ -502,8 +498,7 @@ function initDecodePage() {
   const dropzone = document.getElementById("decodeDropzone");
   const input = document.getElementById("decodeAudioInput");
   const filenameEl = document.getElementById("decodeDzFilename");
-  const passwordInput = document.getElementById("decodePasswordInput");
-  const pwToggle = document.getElementById("decodePwToggle");
+  const privateKeyInput = document.getElementById("privateKeyInput");
   const submitBtn = document.getElementById("decodeSubmit");
   const resultBody = document.getElementById("decodeResultBody");
   const resultTag = document.getElementById("decodeResultTag");
@@ -511,17 +506,14 @@ function initDecodePage() {
 
   attachDropzone(dropzone, input, filenameEl, null);
 
-  pwToggle.addEventListener("click", () => {
-    passwordInput.type = passwordInput.type === "password" ? "text" : "password";
-  });
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!input.files[0]) { toast("Drop a file to scan first."); return; }
 
     const fd = new FormData();
     fd.append("audio", input.files[0]);
-    fd.append("password", passwordInput.value);
+    if (!privateKeyInput.value.trim()) { toast("Paste the receiver private key first."); return; }
+    fd.append("private_key", privateKeyInput.value);
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Scanning…";

@@ -88,7 +88,7 @@ def _bits_to_bytes(bits: list[int]) -> bytes:
     return bytes(out)
 
 
-def decode_message(audio: np.ndarray, sr: int, password: str = "") -> DecodeResult:
+def decode_message(audio: np.ndarray, sr: int, private_key_pem: str = "") -> DecodeResult:
     candidates = find_sync_candidates(audio, sr)
     if not candidates:
         return DecodeResult(
@@ -117,7 +117,7 @@ def decode_message(audio: np.ndarray, sr: int, password: str = "") -> DecodeResu
                     best_reason = (
                         "A sync-like tone was detected, but no valid watermark frame "
                         "was found. Upload the watermarked output file and use the "
-                        "same passphrase used during encoding."
+                        "the receiver private key used during encoding."
                     )
                     best_reason_rank = 1
                 continue
@@ -132,7 +132,7 @@ def decode_message(audio: np.ndarray, sr: int, password: str = "") -> DecodeResu
             crc_bits, _ = _read_bits(audio, sr, crc_bit_start, CRC_BITS)
             crc_read = struct.unpack(">I", _bits_to_bytes(crc_bits))[0]
 
-            plaintext = decrypt(payload_bytes, password)
+            plaintext = decrypt(payload_bytes, private_key_pem)
             crc_calc = zlib.crc32(plaintext) & 0xFFFFFFFF
 
             if crc_calc == crc_read:
@@ -153,10 +153,10 @@ def decode_message(audio: np.ndarray, sr: int, password: str = "") -> DecodeResu
                     best_reason = (
                         "A watermark-like signal was detected, but the message could "
                         "not be verified. Check that you uploaded the watermarked "
-                        "file and entered the same passphrase."
+                        "file and entered the receiver private key."
                     )
                     best_reason_rank = 2
-        except (IndexError, struct.error):
+        except (IndexError, struct.error, ValueError):
             if best_reason_rank < 0:
                 best_reason = "Sync found near the end of the track - not enough samples left to read a full frame."
                 best_reason_rank = 0
@@ -164,7 +164,7 @@ def decode_message(audio: np.ndarray, sr: int, password: str = "") -> DecodeResu
 
     reason = best_reason or "Watermark energy detected but no valid frame could be decoded."
     if saw_bit_errors:
-        reason += " This usually means the wrong password was used, or the audio was heavily compressed/edited after watermarking."
+        reason += " This usually means the wrong private key was used, or the audio was heavily compressed/edited after watermarking."
     return DecodeResult(
         success=False,
         reason=reason,

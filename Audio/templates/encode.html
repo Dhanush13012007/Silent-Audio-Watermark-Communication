@@ -40,13 +40,9 @@
         </div>
 
         <div class="field">
-          <label for="passwordInput">Passphrase <span style="color:var(--ink-faint);font-weight:400;">(optional — encrypts the payload)</span></label>
-          <div class="pw-row">
-            <input type="password" id="passwordInput" placeholder="Leave blank for no encryption">
-            <button type="button" class="icon-toggle" id="pwToggle" title="Show/hide">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12S5.5 5 12 5s10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
-            </button>
-          </div>
+          <label for="publicKeyInput">Receiver public key <span style="color:var(--ink-faint);font-weight:400;">(required)</span></label>
+          <textarea id="publicKeyInput" rows="5" placeholder="Paste the receiver's RSA public PEM key"></textarea>
+          <div class="hint">The sender encrypts with this key. The matching private key stays with the receiver.</div>
         </div>
 
         <div class="field">

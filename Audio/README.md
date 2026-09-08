@@ -4,7 +4,7 @@ A hackathon prototype that hides a text message inside an ordinary audio
 file. The message rides a band of tones just above human hearing
 (18.0–19.6 kHz), mixed in at a whisper. Play the file normally and it
 sounds untouched. Run it back through the decoder and the message comes
-straight out — checksum-verified, and password-encrypted if you chose to.
+straight out — checksum-verified, and encrypted for a receiver's public key.
 
 It's a working, self-contained implementation of covert acoustic
 communication: real DSP (FSK modulation, matched-filter synchronization,
@@ -14,11 +14,11 @@ single-bin DFT demodulation), not a mockup.
 
 - **Encode**: takes any audio file (or one of two built-in demo tracks),
   turns your message into an ultrasonic tone sequence, and layers it into
-  the track at ~5% amplitude. Optional passphrase encrypts the payload
-  before it's ever modulated.
-- **Decode**: takes any audio file and matched-filters it for the sync
-  beacon, demodulates whatever bits are there, checks a CRC-32, decrypts
-  if you give it the passphrase, and shows you what it found (or a
+  the track at ~5% amplitude. The sender encrypts the payload with the
+  receiver's RSA public key before it's ever modulated.
+- **Decode**: takes any audio file and the receiver's RSA private key,
+  matched-filters it for the sync beacon, demodulates whatever bits are there,
+  authenticates and decrypts the payload, and shows you what it found (or a
   specific, honest reason it couldn't).
 - **Dashboard**: a running log of every encode/decode run this session,
   with detection confidence and success-rate stats.
@@ -40,7 +40,7 @@ before processing).
 ## How the watermark actually works
 
 ```
-message → encrypt (optional) → frame → FSK modulate → mix into host → output file
+message → AES-GCM encrypt → RSA-OAEP wrap key → frame → FSK modulate → mix into host → output file
 ```
 
 **Frame layout** (all in the ultrasonic sub-band):
@@ -64,10 +64,11 @@ message → encrypt (optional) → frame → FSK modulate → mix into host → 
   freshly generated copy of the sync tone. Wherever the real sync tone
   sits, that correlation spikes far above the noise floor — sample-accurate,
   regardless of offset.
-- **The cipher** (`encoder/encryption.py` / `decoder/decryption.py`) is a
-  deliberately small SHA-256-keystream XOR cipher — enough to prove the
-  channel can carry an encrypted payload, not a production crypto claim.
-  Swap in AES-GCM for anything real.
+- **The encryption** (`encoder/encryption.py` / `decoder/decryption.py`) uses
+  AES-GCM for authenticated message encryption and RSA-OAEP to wrap a fresh
+  AES key for the receiver. The sender receives only the public key; the
+  receiver's private key is required to decrypt and is never embedded in the
+  audio.
 
 ## Project structure
 
@@ -78,12 +79,12 @@ silent-audio-watermark/
 ├── encoder/
 │   ├── watermark_encoder.py      Frame layout, FSK modulation, tiling
 │   ├── audio_processor.py        Load/save/resample any format via ffmpeg
-│   └── encryption.py             XOR keystream cipher (encrypt side)
+│   └── encryption.py             AES-GCM + RSA-OAEP sender encryption
 │
 ├── decoder/
 │   ├── watermark_detector.py     Matched-filter sync beacon localization
 │   ├── watermark_decoder.py      Bit demodulation, CRC check, full pipeline
-│   └── decryption.py             XOR keystream cipher (decrypt side)
+│   └── decryption.py             RSA-OAEP + AES-GCM receiver decryption
 │
 ├── static/
 │   ├── css/style.css             Design system
@@ -109,7 +110,8 @@ silent-audio-watermark/
   (e.g. old telephony codecs, some voice-note formats) will low-pass
   filter away the whole watermark band — there's nothing above ~19-20 kHz
   left to find. This is inherent to any near-ultrasonic scheme, not a bug.
-- The cipher is a demo-grade XOR keystream, not audited crypto.
+- The receiver must generate and protect an RSA private key. Anyone with the
+  matching private key can decrypt the embedded message.
 - ~25 bits/sec is deliberately conservative for robustness; a
   production system would trade some of that inaudibility margin for
   a denser constellation (more than 2 FSK tones) to raise throughput.

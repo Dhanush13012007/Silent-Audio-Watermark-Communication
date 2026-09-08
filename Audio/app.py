@@ -164,7 +164,7 @@ def api_encode():
     audio_file = request.files.get("audio")
     demo_track = request.form.get("demo_track", "").strip()
     message = request.form.get("message", "").strip()
-    password = request.form.get("password", "")
+    public_key_pem = request.form.get("public_key", "")
     try:
         amplitude = float(request.form.get("amplitude", DEFAULT_AMPLITUDE))
     except ValueError:
@@ -199,7 +199,7 @@ def api_encode():
         save_audio(os.path.join(OUTPUT_DIR, original_name), host, sr)
 
         watermarked, stats = embed_watermark(
-            host, sr, message, password=password, amplitude=amplitude
+            host, sr, message, public_key_pem=public_key_pem, amplitude=amplitude
         )
 
         out_name = f"watermarked_{uuid.uuid4().hex[:10]}.wav"
@@ -258,7 +258,7 @@ def api_encode():
 def api_decode():
     started = time.time()
     audio_file = request.files.get("audio")
-    password = request.form.get("password", "")
+    private_key_pem = request.form.get("private_key", "")
 
     if not audio_file or not audio_file.filename:
         return jsonify({"error": "Upload an audio file to scan."}), 400
@@ -269,7 +269,7 @@ def api_decode():
 
     try:
         audio, sr = load_audio(src_path)
-        result = decode_message(audio, sr, password=password)
+        result = decode_message(audio, sr, private_key_pem=private_key_pem)
         elapsed = round(time.time() - started, 3)
 
         _append_history(

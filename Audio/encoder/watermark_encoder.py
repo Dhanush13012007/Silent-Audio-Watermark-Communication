@@ -16,7 +16,7 @@ Frame layout (all in the ultrasonic sub-band, one tone per slot)
   * payload bits - the (optionally encrypted) message, FSK-modulated:
                     BIT0_FREQ for 0, BIT1_FREQ for 1.
   * CRC-32       - lets the decoder confirm the message was recovered
-                    correctly (or that the password was right).
+                    correctly (or that the receiver key was right).
 
 The whole frame is generated once, then tiled back-to-back across the
 full length of the host track (looping the host if it's shorter than a
@@ -77,12 +77,12 @@ def _bits_from_bytes(data: bytes) -> list[int]:
     return bits
 
 
-def build_frame(message: str, password: str, sr: int) -> tuple[np.ndarray, EncodeStats]:
+def build_frame(message: str, public_key_pem: str, sr: int) -> tuple[np.ndarray, EncodeStats]:
     """Build one full watermark frame (sync + length + payload + crc) as a
     normalized (peak = 1.0) mono float32 waveform."""
     plaintext = message.encode("utf-8")
     crc = zlib.crc32(plaintext) & 0xFFFFFFFF
-    payload = encrypt(plaintext, password) if password else plaintext
+    payload = encrypt(plaintext, public_key_pem)
 
     header = struct.pack(">H", len(payload))
     crc_bytes = struct.pack(">I", crc)
@@ -115,7 +115,7 @@ def embed_watermark(
     host: np.ndarray,
     sr: int,
     message: str,
-    password: str = "",
+    public_key_pem: str = "",
     amplitude: float = DEFAULT_AMPLITUDE,
 ) -> tuple[np.ndarray, EncodeStats]:
     """Return (watermarked_audio, stats). `host` must be a mono float32
@@ -123,7 +123,7 @@ def embed_watermark(
     if not message:
         raise ValueError("Message cannot be empty.")
 
-    frame, stats = build_frame(message, password, sr)
+    frame, stats = build_frame(message, public_key_pem, sr)
     frame_len = len(frame)
 
     # Extend the host (by looping it) if it's shorter than one full frame,
