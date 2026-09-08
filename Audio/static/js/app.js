@@ -519,20 +519,31 @@ function initDecodePage() {
     submitBtn.textContent = "Scanning…";
     resultTag.textContent = "SCANNING";
 
-    const req = fetch("/api/decode", { method: "POST", body: fd }).then((r) => r.json());
-    const data = await runProgress(progressEl, ["scan", "sync", "demod", "done"], req);
+    try {
+      const req = fetch("/api/decode", { method: "POST", body: fd }).then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok && !data.error) {
+          data.error = `The decoder server returned HTTP ${response.status}.`;
+        }
+        return data;
+      });
+      const data = await runProgress(progressEl, ["scan", "sync", "demod", "done"], req);
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Scan for watermark";
+      if (data.error) {
+        resultTag.textContent = "ERROR";
+        resultBody.innerHTML = `<div class="banner bad">${escapeHtml(data.error)}</div>`;
+        return;
+      }
 
-    if (data.error) {
+      resultTag.textContent = data.success ? "MESSAGE FOUND" : "NOT FOUND";
+      await renderDecodeResult(resultBody, data);
+    } catch (error) {
       resultTag.textContent = "ERROR";
-      resultBody.innerHTML = `<div class="banner bad">${escapeHtml(data.error)}</div>`;
-      return;
+      resultBody.innerHTML = `<div class="banner bad">${escapeHtml(error.message || "The decode request failed. Check that the server is running and try again.")}</div>`;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Scan for watermark";
     }
-
-    resultTag.textContent = data.success ? "MESSAGE FOUND" : "NOT FOUND";
-    await renderDecodeResult(resultBody, data);
   });
 }
 
