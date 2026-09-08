@@ -89,10 +89,14 @@ def build_frame(message: str, password: str, sr: int) -> tuple[np.ndarray, Encod
     frame_bytes = header + payload + crc_bytes
     bits = _bits_from_bytes(frame_bytes)
 
-    chunks = [_tone(SYNC_FREQ, SYNC_DURATION, sr, 1.0)]
+    sync_tone = _tone(SYNC_FREQ, SYNC_DURATION, sr, 1.0)
+    bit_tones = {
+        0: _tone(BIT0_FREQ, BIT_DURATION, sr, 1.0),
+        1: _tone(BIT1_FREQ, BIT_DURATION, sr, 1.0),
+    }
+    chunks = [sync_tone]
     for bit in bits:
-        freq = BIT1_FREQ if bit else BIT0_FREQ
-        chunks.append(_tone(freq, BIT_DURATION, sr, 1.0))
+        chunks.append(bit_tones[bit])
 
     frame = np.concatenate(chunks)
     stats = EncodeStats(
