@@ -562,7 +562,9 @@ function initDecodePage() {
       resultTag.textContent = "ERROR";
       const message = error.name === "AbortError"
         ? "Decoding timed out after 90 seconds. Try a shorter audio file."
-        : (error.message || "The decode request failed. Check that the server is running and try again.");
+        : error instanceof TypeError && error.message === "Failed to fetch"
+          ? "The decoder server could not be reached or stopped before responding. Refresh the page and try a short MP3; for large files, use the local app."
+          : (error.message || "The decode request failed. Check that the server is running and try again.");
       resultBody.innerHTML = `<div class="banner bad">${escapeHtml(message)}</div>`;
     } finally {
       clearTimeout(timeout);

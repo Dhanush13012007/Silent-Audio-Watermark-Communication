@@ -27,6 +27,7 @@ import uuid
 from dataclasses import asdict
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from encoder.audio_processor import (
     AudioLoadError,
@@ -62,6 +63,14 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 60 * 1024 * 1024  # 60 MB uploads
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_request(error):
+    return jsonify({
+        "error": "This audio upload is too large for the current deployment. "
+        "Use a smaller compressed file or run the local app for large files."
+    }), 413
 
 
 @app.context_processor
