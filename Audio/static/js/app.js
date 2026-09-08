@@ -159,7 +159,7 @@ const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 function uploadSizeMessage(file) {
   const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-  return `${file.name} is ${sizeMb} MB. Please use an audio file smaller than ${MAX_UPLOAD_MB} MB.`;
+  return `${file.name} is ${sizeMb} MB. This hosted app cannot accept large uploads; use the local app for files above ${MAX_UPLOAD_MB} MB.`;
 }
 
 function attachDropzone(dropzone, input, filenameEl, onFile) {
@@ -543,7 +543,7 @@ function initDecodePage() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok && !data.error) {
           data.error = response.status === 413
-            ? "This audio file is too large for the hosted decoder. Please choose an audio file smaller than 3 MB."
+            ? "This hosted decoder cannot accept this upload because of Vercel's request limit. Use the local app for large files."
             : `The decoder server returned HTTP ${response.status}.`;
         }
         return data;
