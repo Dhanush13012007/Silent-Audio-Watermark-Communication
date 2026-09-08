@@ -37,6 +37,11 @@ Open `http://localhost:5000`. `ffmpeg` must be on your `PATH` (used to
 normalize any uploaded format — wav/mp3/m4a/flac/ogg — to 44.1 kHz mono
 before processing).
 
+The local Flask server accepts uploads up to 60 MB. The Vercel deployment is
+limited to 3 MB because Vercel serverless requests have a hard body-size limit
+of about 4.5 MB. Larger hosted uploads require deploying Flask on Render,
+Railway, a VPS, or using object storage with a separate processing worker.
+
 ## How the watermark actually works
 
 ```

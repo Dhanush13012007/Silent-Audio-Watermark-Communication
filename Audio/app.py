@@ -54,12 +54,18 @@ OUTPUT_DIR = os.path.join(RUNTIME_DIR, "output")
 HISTORY_PATH = os.path.join(OUTPUT_DIR, "history.json")
 DEMO_AUDIO_DIR = os.path.join(BASE_DIR, "static", "audio")
 MAX_HISTORY = 200
+MAX_UPLOAD_MB = 3 if os.getenv("VERCEL") else 60
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 60 * 1024 * 1024  # 60 MB uploads
+
+
+@app.context_processor
+def upload_limits() -> dict:
+    return {"max_upload_mb": MAX_UPLOAD_MB}
 
 
 @app.template_filter("fmt_time")
