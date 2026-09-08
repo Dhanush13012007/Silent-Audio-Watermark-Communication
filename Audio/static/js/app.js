@@ -464,11 +464,11 @@ function renderEncodeResult(container, data) {
       <div class="audio-compare">
         <div class="audio-card">
           <div class="lbl">ORIGINAL</div>
-          <audio controls src="${data.original_url}"></audio>
+          <audio controls preload="metadata" src="${data.original_url}"></audio>
         </div>
         <div class="audio-card">
           <div class="lbl">WATERMARKED</div>
-          <audio controls src="${data.download_url}"></audio>
+          <audio controls preload="metadata" src="${data.download_url}"></audio>
         </div>
       </div>
     </div>
@@ -478,12 +478,16 @@ function renderEncodeResult(container, data) {
   drawWaveformCompare(document.getElementById("wfCompareCanvas"), data.waveform_before, data.waveform_after);
   drawSpectrum(document.getElementById("spectrumCanvas"), data.spectrum.freqs, data.spectrum.db, data.watermark_band, data.sync_freq);
 
-  const comparePlayers = container.querySelectorAll("audio");
+  const comparePlayers = [...container.querySelectorAll("audio")];
   comparePlayers.forEach((player) => {
     player.addEventListener("play", () => {
+      // Keep A/B listening sequential without disabling either control.
       comparePlayers.forEach((other) => {
-        if (other !== player) other.pause();
+        if (other !== player && !other.paused) other.pause();
       });
+    });
+    player.addEventListener("error", () => {
+      toast("This audio version could not be loaded. Try pressing play again.");
     });
   });
 }
