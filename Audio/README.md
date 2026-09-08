@@ -42,6 +42,10 @@ limited to 3 MB because Vercel serverless requests have a hard body-size limit
 of about 4.5 MB. Larger hosted uploads require deploying Flask on Render,
 Railway, a VPS, or using object storage with a separate processing worker.
 
+Generated watermarked downloads are encoded as mono 192 kbps MP3 files rather
+than uncompressed WAV files, which keeps them small enough to upload again in
+most cases while retaining the watermark band.
+
 ## How the watermark actually works
 
 ```

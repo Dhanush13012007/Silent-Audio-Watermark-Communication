@@ -33,6 +33,7 @@ from encoder.audio_processor import (
     duration_seconds,
     load_audio,
     save_audio,
+    save_audio_mp3,
     spectrum_snapshot,
     waveform_preview,
 )
@@ -201,16 +202,16 @@ def api_encode():
 
         # Keep a normalized copy of the original around so the UI can offer
         # a genuine side-by-side A/B listen against the watermarked output.
-        original_name = f"original_{uuid.uuid4().hex[:10]}.wav"
-        save_audio(os.path.join(OUTPUT_DIR, original_name), host, sr)
+        original_name = f"original_{uuid.uuid4().hex[:10]}.mp3"
+        save_audio_mp3(os.path.join(OUTPUT_DIR, original_name), host, sr)
 
         watermarked, stats = embed_watermark(
             host, sr, message, public_key_pem=public_key_pem, amplitude=amplitude
         )
 
-        out_name = f"watermarked_{uuid.uuid4().hex[:10]}.wav"
+        out_name = f"watermarked_{uuid.uuid4().hex[:10]}.mp3"
         out_path = os.path.join(OUTPUT_DIR, out_name)
-        save_audio(out_path, watermarked, sr)
+        save_audio_mp3(out_path, watermarked, sr)
 
         wm_preview = waveform_preview(watermarked)
         spectrum = spectrum_snapshot(watermarked, sr)

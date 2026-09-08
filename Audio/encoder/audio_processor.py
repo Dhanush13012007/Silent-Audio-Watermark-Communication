@@ -102,6 +102,27 @@ def save_audio(path: str, samples: np.ndarray, sr: int = TARGET_SR) -> None:
     wavfile.write(path, sr, pcm)
 
 
+def save_audio_mp3(path: str, samples: np.ndarray, sr: int = TARGET_SR) -> None:
+    """Write mono audio as a compact 192 kbps MP3 using the bundled ffmpeg."""
+    try:
+        ffmpeg = get_ffmpeg_exe() if get_ffmpeg_exe else "ffmpeg"
+        pcm = (np.clip(samples, -1.0, 1.0) * 32767.0).astype(np.int16)
+        result = subprocess.run(
+            [
+                ffmpeg, "-v", "error", "-f", "s16le", "-ar", str(sr), "-ac", "1",
+                "-i", "-", "-codec:a", "libmp3lame", "-b:a", "192k", "-y", path,
+            ],
+            input=pcm.tobytes(),
+            capture_output=True,
+            timeout=120,
+        )
+    except (FileNotFoundError, RuntimeError, subprocess.TimeoutExpired) as exc:
+        raise AudioLoadError("MP3 encoding is unavailable on this server.") from exc
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()[:200]
+        raise AudioLoadError(f"Could not create compressed audio ({detail})")
+
+
 def waveform_preview(samples: np.ndarray, buckets: int = 400) -> list[float]:
     """Downsample a signal to `buckets` peak values for a lightweight
     waveform visualization on the frontend (min/max per bucket, folded
