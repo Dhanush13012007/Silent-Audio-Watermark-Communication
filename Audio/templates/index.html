@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block page_id %}home{% endblock %}
+{% block content %}
+
+<section class="landing-hero">
+  <div class="hero-orbit orbit-one"></div>
+  <div class="hero-orbit orbit-two"></div>
+  <div class="shell landing-hero-inner">
+    <div class="landing-kicker"><span class="pulse-dot"></span> SIGNAL LAB / PROTOTYPE 01</div>
+    <div class="landing-title-row">
+      <h1>THE SOUND<br><em>BETWEEN</em><br>THE SOUND.</h1>
+      <div class="hero-note">
+        <span class="note-index">00 / 04</span>
+        <p>Messages move through the air as quiet architecture. Hide them in plain hearing.</p>
+        <a href="#how-it-works" class="text-link">Explore the channel <span>↘</span></a>
+      </div>
+    </div>
+    <div class="hero-stage">
+      <div class="hero-stage-label"><span>LIVE SPECTRUM</span><span class="mono">{{ "%.1f"|format(bit0/1000) }}—{{ "%.1f"|format(bit1/1000) }} KHZ</span></div>
+      <div class="hero-visual">
+        <canvas id="heroCanvas"></canvas>
+        <div class="hero-crosshair crosshair-x"></div><div class="hero-crosshair crosshair-y"></div>
+        <div class="hero-readout">CARRIER FOUND <strong>●</strong><br><span>LISTENING ABOVE THE HEARD</span></div>
+      </div>
+      <div class="hero-stage-footer"><span>AN ULTRASONIC WATERMARKING EXPERIMENT</span><span>SCROLL TO TUNE IN ↓</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="signal-marquee" aria-label="Silent Channel principles"><span>HIDE IN PLAIN SIGHT</span><i>✳</i><span>TRANSMIT WITHOUT NOISE</span><i>✳</i><span>MAKE THE INVISIBLE LEGIBLE</span><i>✳</i></div>
+
+<section class="shell editorial-section intro-section" id="how-it-works">
+  <div class="section-index">01 / THE IDEA</div>
+  <div class="editorial-grid">
+    <h2>A message that<br><span>doesn't ask</span><br>to be heard.</h2>
+    <div class="editorial-copy">
+      <p class="large-copy">Silent Channel turns text into a low-profile signal and places it above the music, conversation, or field recording you already have.</p>
+      <p>It is a small act of sonic camouflage: encryption, modulation, and detection working together as one reversible channel.</p>
+      <a href="/encode" class="circle-link"><span>START<br>BUILDING</span><b>↗</b></a>
+    </div>
+  </div>
+</section>
+
+<section class="signal-section" id="signal-stack">
+  <div class="shell">
+    <div class="section-index light">02 / THE SIGNAL STACK</div>
+    <div class="section-title-line"><h2>From thought<br>to waveform.</h2><p>Five precise moves. One invisible payload.</p></div>
+    <div class="stack-list">
+      <button class="stack-item active" type="button" data-stack="message"><span>01</span><strong>MESSAGE</strong><em>Start with something worth sending.</em><b>↘</b></button>
+      <button class="stack-item" type="button" data-stack="encrypt"><span>02</span><strong>ENCRYPT</strong><em>Give the payload a private shape.</em><b>↘</b></button>
+      <button class="stack-item" type="button" data-stack="modulate"><span>03</span><strong>MODULATE</strong><em>Turn every character into frequency.</em><b>↘</b></button>
+      <button class="stack-item" type="button" data-stack="embed"><span>04</span><strong>EMBED</strong><em>Layer the signal below attention.</em><b>↘</b></button>
+      <button class="stack-item" type="button" data-stack="recover"><span>05</span><strong>RECOVER</strong><em>Scan, decode, reveal.</em><b>↘</b></button>
+    </div>
+    <div class="stack-preview"><div class="stack-preview-number">01</div><div><span class="preview-kicker">CURRENT PHASE</span><h3 id="stackPreviewTitle">A thought becomes a payload.</h3><p id="stackPreviewCopy">Plain text enters the encoder, ready to travel somewhere the ear does not naturally look.</p></div></div>
+  </div>
+</section>
+
+<section class="shell editorial-section launch-section">
+  <div class="section-index">03 / PICK A DIRECTION</div>
+  <div class="launch-heading"><h2>What are you<br>sending?</h2><span>CHOOSE YOUR<br>ENTRY POINT ↘</span></div>
+  <div class="launch-grid">
+    <a href="/encode" class="launch-card encode"><span class="card-number">A /</span><h3>Hide a message.</h3><p>Turn any audio track into a carrier for a private note.</p><span class="card-action">OPEN ENCODER ↗</span></a>
+    <a href="/decode" class="launch-card decode"><span class="card-number">B /</span><h3>Find a message.</h3><p>Scan a track and see if something is waiting above the noise.</p><span class="card-action">OPEN DECODER ↗</span></a>
+  </div>
+</section>
+
+<section class="closing-section"><div class="shell"><span class="section-index light">04 / END OF TRANSMISSION</span><h2>Nothing is<br>ever just noise.</h2><a href="/encode" class="btn btn-light">ENTER THE CHANNEL ↗</a></div></section>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Silent Channel — Ultrasonic Audio Watermarking{% endblock %}</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-page="{% block page_id %}{% endblock %}">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand">
+      <svg class="brand-mark" viewBox="0 0 26 26" fill="none">
+        <rect x="0.5" y="0.5" width="25" height="25" rx="5" stroke="#57e8d1" stroke-opacity="0.4"/>
+        <path d="M4 13H7L9 7L12 19L14.5 10L16.5 16L18 13H22" stroke="#57e8d1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-word">Silent Channel<small>ULTRASONIC WATERMARKING</small></span>
+    </a>
+    <nav class="navlinks">
+      <a href="/" class="navlink {{ 'active' if active=='home' else '' }}">Home</a>
+      <a href="/encode" class="navlink {{ 'active' if active=='encode' else '' }}">Encode</a>
+      <a href="/decode" class="navlink {{ 'active' if active=='decode' else '' }}">Decode</a>
+      <a href="/dashboard" class="navlink {{ 'active' if active=='dashboard' else '' }}">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <p>Hackathon prototype — messages ride an inaudible band above 17.5&nbsp;kHz, alongside whatever audio is already playing.</p>
+    <p class="mono">SYNC 19.0kHz · BIT0 18.0kHz · BIT1 19.6kHz</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

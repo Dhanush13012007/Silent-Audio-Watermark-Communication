@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block page_id %}decode{% endblock %}
+{% block content %}
+
+<section class="shell work-header">
+  <span class="eyebrow-inline">decoder</span>
+  <h1>Scan for a hidden message</h1>
+  <p>Drop in any track. The detector matched-filters the ultrasonic band for a sync beacon, demodulates whatever bits it finds, and checks them against a checksum before showing you anything.</p>
+</section>
+
+<section class="shell work-grid">
+
+  <!-- LEFT: controls -->
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Suspect audio</h3>
+      <span class="tag">STEP 1/1</span>
+    </div>
+    <div class="panel-body">
+      <form id="decodeForm">
+        <div class="dropzone" id="decodeDropzone" tabindex="0">
+          <svg class="dz-icon" viewBox="0 0 24 24" fill="none"><path d="M12 4V16M12 16L7 11M12 16L17 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16V18C4 19.1 4.9 20 6 20H18C19.1 20 20 19.1 20 18V16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <div class="dz-title">Drop an audio file, or click to browse</div>
+          <div class="dz-sub">Works on watermarked or plain audio</div>
+          <input type="file" id="decodeAudioInput" name="audio" accept="audio/*">
+          <div class="dz-filename" id="decodeDzFilename"></div>
+        </div>
+
+        <div class="field">
+          <label for="decodePasswordInput">Passphrase <span style="color:var(--ink-faint);font-weight:400;">(only if the sender used one)</span></label>
+          <div class="pw-row">
+            <input type="password" id="decodePasswordInput" placeholder="Leave blank if none">
+            <button type="button" class="icon-toggle" id="decodePwToggle" title="Show/hide">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12S5.5 5 12 5s10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="progress-chain" id="decodeProgress" style="display:none;">
+          <div class="progress-node" data-step="scan"><div class="dot"></div><span>SCAN</span></div>
+          <div class="progress-node" data-step="sync"><div class="dot"></div><span>SYNC</span></div>
+          <div class="progress-node" data-step="demod"><div class="dot"></div><span>DEMOD</span></div>
+          <div class="progress-node" data-step="done"><div class="dot"></div><span>DONE</span></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="decodeSubmit" style="margin-top:22px;">Scan for watermark</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- RIGHT: results -->
+  <div class="panel" id="decodeResultPanel">
+    <div class="panel-head">
+      <h3>Result</h3>
+      <span class="tag" id="decodeResultTag">AWAITING INPUT</span>
+    </div>
+    <div class="panel-body" id="decodeResultBody">
+      <div class="result-empty">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="10" cy="10" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M14.7 14.7L20 20" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <h4>No file scanned yet</h4>
+        <p>Drop a track on the left — the spectrum sweep, detection confidence and any recovered message will appear here.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+{% endblock %}

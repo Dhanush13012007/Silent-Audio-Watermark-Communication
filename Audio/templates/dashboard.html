@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block page_id %}dashboard{% endblock %}
+{% block content %}
+
+<section class="shell dash-header">
+  <span class="eyebrow-inline">session telemetry</span>
+  <h1>Channel dashboard</h1>
+  <p>Every embed and scan run through this app lands here — a quick read on how the ultrasonic channel is holding up.</p>
+</section>
+
+<section class="shell">
+  <div class="meter-strip">
+    <div class="meter" data-value="{{ summary.total_operations }}" data-max="40">
+      <span class="label">TOTAL OPS</span>
+      <span class="value mono">{{ summary.total_operations }}</span>
+      <div class="bars"></div>
+    </div>
+    <div class="meter" data-value="{{ summary.total_encodes }}" data-max="40">
+      <span class="label">ENCODES</span>
+      <span class="value mono">{{ summary.total_encodes }}</span>
+      <div class="bars"></div>
+    </div>
+    <div class="meter" data-value="{{ summary.total_decodes }}" data-max="40">
+      <span class="label">DECODES</span>
+      <span class="value mono">{{ summary.total_decodes }}</span>
+      <div class="bars"></div>
+    </div>
+    <div class="meter" data-value="{{ summary.decode_success_rate or 0 }}" data-max="100" data-hot="1">
+      <span class="label">DECODE SUCCESS</span>
+      <span class="value mono">{{ (summary.decode_success_rate ~ '%') if summary.decode_success_rate is not none else '—' }}</span>
+      <div class="bars"></div>
+    </div>
+    <div class="meter" data-value="{{ summary.avg_decode_confidence }}" data-max="100">
+      <span class="label">AVG CONFIDENCE</span>
+      <span class="value mono">{{ summary.avg_decode_confidence }}</span>
+      <div class="bars"></div>
+    </div>
+    <div class="meter" data-value="{{ summary.total_characters_hidden }}" data-max="500">
+      <span class="label">CHARS HIDDEN</span>
+      <span class="value mono">{{ summary.total_characters_hidden }}</span>
+      <div class="bars"></div>
+    </div>
+  </div>
+
+  <div class="panel history-panel">
+    <div class="panel-head">
+      <h3>Recent activity</h3>
+      <span class="tag">LAST {{ history|length }}</span>
+    </div>
+    <div class="panel-body">
+      {% if history %}
+      <div class="history-row head">
+        <span>TYPE</span><span>DETAIL</span><span>STATUS</span><span>METRIC</span><span>TIME</span>
+      </div>
+      {% for h in history %}
+      <div class="history-row">
+        <span class="type-pill {{ h.type }}">{{ h.type|upper }}</span>
+        {% if h.type == 'encode' %}
+          <span>{{ h.message_length }} chars → {{ h.duration_seconds }}s track ({{ h.repeats_embedded }}× repeat)</span>
+          <span class="status-pill ok">embedded</span>
+          <span class="mono">{{ (h.amplitude*100)|round(1) }}% amp</span>
+        {% else %}
+          <span>{{ h.track_duration }}s track scanned</span>
+          <span class="status-pill {{ 'ok' if h.success else 'bad' }}">{{ 'recovered' if h.success else 'not found' }}</span>
+          <span class="mono">{{ h.confidence }}% confidence</span>
+        {% endif %}
+        <time>{{ h.timestamp|fmt_time }}</time>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="empty-history">No activity yet — encode or decode something to populate this feed.</div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

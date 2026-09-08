@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Generated runtime audio and uploads
+output/*.wav
+uploads/*
+!uploads/.gitkeep
+
+# Local editor and environment files
+.env
+.vscode/
+
+# Empty nested repository placeholders
+Silent-Audio-Watermark-Communication/
